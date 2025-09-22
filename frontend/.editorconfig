@@ -1,0 +1,4 @@
+# JS, TS, Svelte files
+[*.{js,ts,svelte,html,css}]
+indent_size = 2
+max_line_length = 120

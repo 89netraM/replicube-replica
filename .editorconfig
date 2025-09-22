@@ -1,0 +1,11 @@
+root = true
+
+# All files
+[*]
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+
+# Config files
+[*.json]
+indent_size = 2
