@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Preview from "./Preview.svelte";
+  import Preview from "$lib/components/Preview.svelte";
 
   let size = $state(3);
 </script>
