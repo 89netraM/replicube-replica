@@ -10,6 +10,7 @@
 
   onMount(() => {
     preview = new VoxelRendering(canvas, size);
+    preview.voxelCallback = (x, y, z) => x + y + z + 8;
 
     canvasSizeObserver = new ResizeObserver(onCanvasResize);
     canvasSizeObserver.observe(canvas);
@@ -18,7 +19,7 @@
   });
 
   $effect(() => {
-    preview.setSize(size);
+    preview.size = size;
   });
 
   function onCanvasResize() {
