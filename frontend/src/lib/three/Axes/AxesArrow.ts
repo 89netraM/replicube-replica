@@ -1,11 +1,11 @@
-import { ArrowHelper, Mesh, Vector3, type ColorRepresentation } from "three";
+import { ArrowHelper, Group, Mesh, Vector3, type ColorRepresentation } from "three";
 import { createAxesSphere } from "./axesSphere";
 
 export class AxesArrow extends ArrowHelper {
   private readonly dir: Vector3;
   private readonly color: ColorRepresentation;
   private readonly margin: number;
-  private readonly spheres: Array<Mesh> = [];
+  private readonly spheres: Group = new Group();
 
   public constructor(dir: Vector3, length: number, color: ColorRepresentation, margin: number = 0.25) {
     super(
@@ -20,6 +20,7 @@ export class AxesArrow extends ArrowHelper {
     this.color = color;
     this.margin = margin;
 
+    this.add(this.spheres);
     this.updateSpheres(length);
   }
 
@@ -30,10 +31,7 @@ export class AxesArrow extends ArrowHelper {
   }
 
   private updateSpheres(length: number) {
-    let s: Mesh | undefined = undefined;
-    while ((s = this.spheres.pop()) != null) {
-      this.remove(s);
-    }
+    this.spheres.clear();
 
     for (let i = 0; i <= length * 2; i++) {
       if (i === length) {
@@ -41,8 +39,7 @@ export class AxesArrow extends ArrowHelper {
       }
       const sphere = createAxesSphere(this.color);
       sphere.position.set(0, this.margin + 0.5 + i, 0);
-      this.add(sphere);
-      this.spheres.push(sphere);
+      this.spheres.add(sphere);
     }
   }
 }

@@ -2,6 +2,7 @@ import { Axes } from "./Axes";
 import {
   AmbientLight,
   DirectionalLight,
+  Group,
   Light,
   Mesh,
   PerspectiveCamera,
@@ -35,7 +36,7 @@ export class VoxelRendering {
   private readonly scene: Scene;
   private readonly axes: Axes;
 
-  private readonly voxels: Array<Mesh> = [];
+  private readonly voxels: Group = new Group();
   #voxelCallback: VoxelCallback | null = null;
   public get voxelCallback(): VoxelCallback | null {
     return this.#voxelCallback;
@@ -93,6 +94,8 @@ export class VoxelRendering {
     this.lights[2].position.set(1, 2, 3);
     this.scene.add(...this.lights);
 
+    this.scene.add(this.voxels);
+
     this.animate = this.animate.bind(this);
   }
 
@@ -116,7 +119,7 @@ export class VoxelRendering {
   }
 
   private recreateVoxels() {
-    this.clearVoxels();
+    this.voxels.clear();
 
     if (this.voxelCallback == null) {
       return;
@@ -132,16 +135,9 @@ export class VoxelRendering {
           }
           const voxel = new Voxel(color);
           voxel.position.set(x, y, z);
-          this.scene.add(voxel);
-          this.voxels.push(voxel);
+          this.voxels.add(voxel);
         }
       }
-    }
-  }
-  private clearVoxels() {
-    let voxel: Mesh | undefined = undefined;
-    while ((voxel = this.voxels.pop()) != null) {
-      this.scene.remove(voxel);
     }
   }
 
