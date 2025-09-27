@@ -1,4 +1,4 @@
-import { ArrowHelper, Group, Mesh, Vector3, type ColorRepresentation } from "three";
+import { ArrowHelper, Group, Vector3, type ColorRepresentation } from "three";
 import { createAxesSphere } from "./axesSphere";
 
 export class AxesArrow extends ArrowHelper {

@@ -1,10 +1,11 @@
 import { Axes } from "./Axes";
 import {
   AmbientLight,
+  AnimationMixer,
+  Clock,
   DirectionalLight,
   Group,
   Light,
-  Mesh,
   PerspectiveCamera,
   Scene,
   Vector3,
@@ -18,6 +19,8 @@ import { Voxel } from "./Voxel";
 export class VoxelRendering {
   public readonly canvas: HTMLCanvasElement;
   public readonly renderer: WebGLRenderer;
+  public readonly clock: Clock = new Clock();
+  public readonly animationMixer: AnimationMixer;
   public readonly camera: PerspectiveCamera;
   public readonly lights: ReadonlyArray<Light>;
   public readonly controls: OrbitControls;
@@ -37,6 +40,7 @@ export class VoxelRendering {
   private readonly axes: Axes;
 
   private readonly voxels: Group = new Group();
+  private voxelStateMap: ReadonlyMap<string, number> | null = null;
   #voxelCallback: VoxelCallback | null = null;
   public get voxelCallback(): VoxelCallback | null {
     return this.#voxelCallback;
@@ -96,6 +100,8 @@ export class VoxelRendering {
 
     this.scene.add(this.voxels);
 
+    this.animationMixer = new AnimationMixer(this.voxels);
+
     this.animate = this.animate.bind(this);
   }
 
@@ -119,26 +125,44 @@ export class VoxelRendering {
   }
 
   private recreateVoxels() {
-    this.voxels.clear();
+    this.clearVoxels();
 
+    const newMap = this.calculateVoxelStateMap();
+    for (const [key, colorIndex] of newMap) {
+      const color = this.pallette.get(colorIndex);
+      if (color == null) {
+        continue;
+      }
+      const vec = new Vector3(...key.split(";").map(parseFloat));
+      const voxel = new Voxel(color, this.voxelStateMap?.get(key) !== colorIndex ? this.animationMixer : undefined);
+      voxel.position.copy(vec);
+      this.voxels.add(voxel);
+    }
+    this.voxelStateMap = newMap;
+  }
+  private calculateVoxelStateMap(): ReadonlyMap<string, number> {
+    const map = new Map<string, number>();
     if (this.voxelCallback == null) {
-      return;
+      return map;
     }
 
     for (let x = -this.size; x <= this.size; x++) {
       for (let y = -this.size; y <= this.size; y++) {
         for (let z = -this.size; z <= this.size; z++) {
           const colorIndex = this.voxelCallback(x, y, z);
-          const color = this.pallette.get(colorIndex);
-          if (color == null) {
-            continue;
-          }
-          const voxel = new Voxel(color);
-          voxel.position.set(x, y, z);
-          this.voxels.add(voxel);
+          map.set(`${x};${y};${z}`, colorIndex);
         }
       }
     }
+    return map;
+  }
+
+  private clearVoxels() {
+    this.animationMixer.stopAllAction();
+    for (const voxel of this.voxels.children) {
+      this.animationMixer.uncacheRoot(voxel);
+    }
+    this.voxels.clear();
   }
 
   public startAnimationLoop() {
@@ -146,7 +170,10 @@ export class VoxelRendering {
   }
 
   private animate() {
+    const deltaTime = this.clock.getDelta();
+
     this.controls.update();
+    this.animationMixer.update(deltaTime);
     this.renderer.render(this.scene, this.camera);
   }
 

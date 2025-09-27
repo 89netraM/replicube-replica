@@ -10,7 +10,7 @@
 
   onMount(() => {
     preview = new VoxelRendering(canvas, size);
-    preview.voxelCallback = (x, y, z) => x + y + z + 8;
+    preview.voxelCallback = (x, y, z) => (y === 0 ? x + z + 8 : 0);
 
     canvasSizeObserver = new ResizeObserver(onCanvasResize);
     canvasSizeObserver.observe(canvas);
