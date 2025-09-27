@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { VoxelRendering } from "$lib/three/VoxelRendering";
+  import type { VoxelCallback } from "$lib/three/VoxelCallback";
 
-  let { size = 3 }: { size?: number } = $props();
+  let { size = 3, voxelCallback = null }: { size?: number; voxelCallback?: VoxelCallback | null } = $props();
 
   let canvas: HTMLCanvasElement;
   let preview: VoxelRendering;
@@ -10,7 +11,6 @@
 
   onMount(() => {
     preview = new VoxelRendering(canvas, size);
-    preview.voxelCallback = (x, y, z) => (y === 0 ? x + z + 8 : 0);
 
     canvasSizeObserver = new ResizeObserver(onCanvasResize);
     canvasSizeObserver.observe(canvas);
@@ -20,6 +20,10 @@
 
   $effect(() => {
     preview.size = size;
+  });
+
+  $effect(() => {
+    preview.voxelCallback = voxelCallback;
   });
 
   function onCanvasResize() {

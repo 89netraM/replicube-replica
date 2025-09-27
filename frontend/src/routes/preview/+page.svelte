@@ -1,18 +1,44 @@
 <script lang="ts">
   import Preview from "$lib/components/Preview.svelte";
+  import type { VoxelCallback } from "$lib/three/VoxelCallback";
 
+  let wasmFiles: FileList | null = $state(null);
   let size = $state(3);
+  let voxelCallback: VoxelCallback | null = $state(null);
+
+  $effect(() => {
+    if (wasmFiles == null || wasmFiles.length < 1) {
+      voxelCallback = null;
+      return;
+    }
+    const wasmFile = wasmFiles.item(0);
+    if (wasmFile == null) {
+      voxelCallback = null;
+      return;
+    }
+    updateVoxelCallback(wasmFile);
+  });
+
+  async function updateVoxelCallback(wasmFile: File) {
+    const wasm = await WebAssembly.instantiate(await wasmFile.arrayBuffer());
+    const exports = wasm.instance.exports;
+    if (typeof exports.render === "function") {
+      voxelCallback = exports.render as VoxelCallback;
+    } else {
+      voxelCallback = null;
+    }
+  }
 </script>
 
 <div>
   <main>
-    <Preview {size} />
+    <Preview {size} {voxelCallback} />
   </main>
 
   <aside>
     <label>
       <span>WASM:</span>
-      <input type="file" />
+      <input type="file" bind:files={wasmFiles} />
     </label>
     <label>
       <span>Size:</span>
