@@ -2,8 +2,18 @@
   import Preview from "$lib/components/Preview.svelte";
   import type { VoxelCallback } from "$lib/three/VoxelCallback";
 
-  let wasmFiles: FileList | null = $state(null);
   let size = $state(3);
+  // svelte-ignore state_referenced_locally
+  let previewSize = $state(size);
+
+  $effect(() => {
+    if (!Number.isSafeInteger(size) || size < 0) {
+      return;
+    }
+    previewSize = size;
+  });
+
+  let wasmFiles: FileList | null = $state(null);
   let voxelCallback: VoxelCallback | null = $state(null);
 
   $effect(() => {
@@ -32,17 +42,17 @@
 
 <div>
   <main>
-    <Preview {size} {voxelCallback} />
+    <Preview size={previewSize} {voxelCallback} />
   </main>
 
   <aside>
     <label>
-      <span>WASM:</span>
       <input type="file" bind:files={wasmFiles} />
+      <span>Upload WASM voxel renderer</span>
     </label>
     <label>
       <span>Size:</span>
-      <input type="number" bind:value={size} min="0" step="1" />
+      <input type="number" bind:value={size} min="0" step="1" required pattern="^[1-9]\d*$" />
     </label>
   </aside>
 </div>
@@ -58,6 +68,44 @@
     main {
       container-type: size;
       flex-grow: 1;
+    }
+
+    aside {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.5rem;
+
+      label {
+        input {
+          &[type="file"] {
+            display: none;
+
+            + span {
+              display: inline-block;
+              background: #aaaaaa;
+              border: 1px solid #000000;
+              border-radius: 0.25rem;
+              padding: 0.25rem 0.5rem;
+              cursor: pointer;
+              user-select: none;
+
+              &:hover {
+                background: #afafaf;
+              }
+              &:active {
+                background: #999999;
+              }
+            }
+          }
+
+          &:invalid {
+            border-color: #ff0000;
+            outline-color: #ff0000;
+          }
+        }
+      }
     }
   }
 </style>
