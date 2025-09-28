@@ -124,36 +124,51 @@ export class VoxelRendering {
     this.camera.updateProjectionMatrix();
   }
 
-  private recreateVoxels() {
-    this.clearVoxels();
-
-    const newMap = this.calculateVoxelStateMap();
-    for (const [key, colorIndex] of newMap) {
-      const color = this.pallette.get(colorIndex);
-      if (color == null) {
-        continue;
+  private async recreateVoxels() {
+    try {
+      const newMap = await this.calculateVoxelStateMap();
+      this.clearVoxels();
+      for (const [key, colorIndex] of newMap) {
+        const color = this.pallette.get(colorIndex);
+        if (color == null) {
+          continue;
+        }
+        const vec = new Vector3(...key.split(";").map(parseFloat));
+        const voxel = new Voxel(color, this.voxelStateMap?.get(key) !== colorIndex ? this.animationMixer : undefined);
+        voxel.position.copy(vec);
+        this.voxels.add(voxel);
       }
-      const vec = new Vector3(...key.split(";").map(parseFloat));
-      const voxel = new Voxel(color, this.voxelStateMap?.get(key) !== colorIndex ? this.animationMixer : undefined);
-      voxel.position.copy(vec);
-      this.voxels.add(voxel);
+      this.voxelStateMap = newMap;
+    } catch {
+      // Ignore VoxelCallback errors
     }
-    this.voxelStateMap = newMap;
   }
-  private calculateVoxelStateMap(): ReadonlyMap<string, number> {
+  private async calculateVoxelStateMap(): Promise<ReadonlyMap<string, number>> {
     const map = new Map<string, number>();
     if (this.voxelCallback == null) {
       return map;
     }
 
+    const promises = new Array<Promise<void>>();
+
     for (let x = -this.size; x <= this.size; x++) {
       for (let y = -this.size; y <= this.size; y++) {
         for (let z = -this.size; z <= this.size; z++) {
           const colorIndex = this.voxelCallback(x, y, z);
-          map.set(`${x};${y};${z}`, colorIndex);
+          if (colorIndex instanceof Promise) {
+            const promise = colorIndex.then((ci) => {
+              map.set(`${x};${y};${z}`, ci);
+            });
+            promises.push(promise);
+          } else {
+            map.set(`${x};${y};${z}`, colorIndex);
+          }
         }
       }
     }
+
+    await Promise.all(promises);
+
     return map;
   }
 

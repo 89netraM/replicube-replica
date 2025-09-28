@@ -18,8 +18,6 @@
     }
 
     body {
-      min-height: 100svh;
-      width: 100dvw;
       display: inline-block;
     }
 
