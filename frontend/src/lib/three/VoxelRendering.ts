@@ -157,11 +157,11 @@ export class VoxelRendering {
           const colorIndex = this.voxelCallback(x, y, z);
           if (colorIndex instanceof Promise) {
             const promise = colorIndex.then((ci) => {
-              map.set(`${x};${y};${z}`, ci);
+              map.set(`${x};${y};${z}`, ci ?? 0);
             });
             promises.push(promise);
           } else {
-            map.set(`${x};${y};${z}`, colorIndex);
+            map.set(`${x};${y};${z}`, colorIndex ?? 0);
           }
         }
       }

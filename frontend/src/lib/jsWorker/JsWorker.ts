@@ -1,3 +1,4 @@
+import type { VoxelCallbackResult } from "$lib/three/VoxelCallback";
 import workerScript from "./worker.js?raw";
 
 export class JsWorker {
@@ -13,8 +14,8 @@ export class JsWorker {
     this.invokeRenderingFunction = this.invokeRenderingFunction.bind(this);
   }
 
-  public invokeRenderingFunction(x: number, y: number, z: number): Promise<number> {
-    return new Promise((resolve: (result: number) => void, reject: () => void) => {
+  public invokeRenderingFunction(x: number, y: number, z: number): Promise<VoxelCallbackResult> {
+    return new Promise((resolve: (result: VoxelCallbackResult) => void, reject: () => void) => {
       const id = crypto.randomUUID();
 
       const onMessage = (e: MessageEvent<unknown>) => {
@@ -46,11 +47,10 @@ export class JsWorker {
   }
 }
 
-function isResultData(data: unknown): data is { result: number; id: string } {
+function isResultData(data: unknown): data is { result?: number; id: string } {
   return (
     data instanceof Object &&
-    "result" in data &&
-    typeof data.result === "number" &&
+    (!("result" in data) || typeof data.result === "number" || typeof data.result === "undefined") &&
     "id" in data &&
     typeof data.id === "string"
   );
