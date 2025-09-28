@@ -25,7 +25,11 @@ export class JsWorker {
         this.worker.removeEventListener("message", onMessage);
         this.worker.removeEventListener("error", onError);
         clearTimeout(timeoutId);
-        resolve(e.data.result);
+        if (e.data.error) {
+          reject();
+        } else {
+          resolve(e.data.result);
+        }
       };
       const onError = () => {
         this.worker.removeEventListener("message", onMessage);
@@ -47,7 +51,7 @@ export class JsWorker {
   }
 }
 
-function isResultData(data: unknown): data is { result?: number; id: string } {
+function isResultData(data: unknown): data is { result?: number; id: string; error?: true } {
   return (
     data instanceof Object &&
     (!("result" in data) || typeof data.result === "number" || typeof data.result === "undefined") &&

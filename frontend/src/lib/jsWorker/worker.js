@@ -23,6 +23,6 @@ async function onMessage(e) {
     }
     self.postMessage({ result, id });
   } catch {
-    self.postMessage({ result: 0, id });
+    self.postMessage({ error: true, id });
   }
 }
