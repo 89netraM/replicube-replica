@@ -122,6 +122,10 @@ export class VoxelRendering {
 
     this.camera.aspect = canvasSize.width / canvasSize.height;
     this.camera.updateProjectionMatrix();
+
+    if (this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   private async recreateVoxels() {
